@@ -1,0 +1,46 @@
+  version: "3.3"
+  services:
+    db:
+      image: mysql:8.1.0
+    #  container_name: db
+    #  #command: --character-set-server=utf8mb4 ---collation-server=utf8mb4_unicode_ci
+      volumes:
+        - ./dbdata:/var/lib/mysql:delegated
+      ports:
+        - 3306:3306
+      environment:
+        MYSQL_ROOT_PASSWORD: example
+        MYSQL_DATABASE: ${DEV_DB_NAME}
+        MYSQL_USER: "dev"
+        MYSQL_PASSWORD: example
+      networks:
+        - localnet
+      restart: always
+    adminer:
+      image: adminer
+      restart: always
+      ports:
+        - 8080:8080
+      networks:
+        - localnet
+    dev:
+      image: cosmtrek/air:v1.44.0
+      container_name: dev
+      restart: unless-stopped
+      tty: true
+      working_dir: /app
+      environment:
+        DB_USERNAME: ${DEV_DB_USERNAME}
+        DB_HOSTNAME: ${DEV_DB_HOSTNAME}
+        DB_NAME: ${DEV_DB_NAME}
+      volumes:
+        - ./go-code/:/app
+      networks:
+        - localnet
+      secrets:
+        - DB_PASSWORD
+  secrets:
+   DB_PASSWORD:
+        file: ./secrets/DB_PASSWORD
+  networks:
+    localnet:
